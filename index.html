@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AslExport — Fermerdan Dunyoga</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════
+   ROOT DESIGN TOKENS
+════════════════════════════════════════════ */
+:root {
+  --c-bg:       #07100a;
+  --c-bg1:      #0c1a0f;
+  --c-bg2:      #111f14;
+  --c-bg3:      #162119;
+  --c-surface:  #1c2b1f;
+  --c-surface2: #223325;
+  --c-border:   rgba(80,200,110,0.10);
+  --c-border2:  rgba(80,200,110,0.22);
+  --c-border3:  rgba(80,200,110,0.38);
+
+  --c-green:    #50c86e;
+  --c-green2:   #34a854;
+  --c-green3:   #1d7a38;
+  --c-green4:   #0f4d22;
+  --c-greenGlow:rgba(80,200,110,0.18);
+
+  --c-gold:     #e8c05a;
+  --c-gold2:    #c9a030;
+  --c-goldGlow: rgba(232,192,90,0.15);
+
+  --c-red:      #f05050;
+  --c-blue:     #50aac8;
+
+  --c-text:     #dceee0;
+  --c-text2:    #7a9e82;
+  --c-text3:    #3d5e45;
+  --c-white:    #ffffff;
+
+  --r-sm:  8px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  28px;
+
+  --shadow-sm: 0 2px 12px rgba(0,0,0,0.5);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.6);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.7);
+  --shadow-glow: 0 0 40px rgba(80,200,110,0.12);
+
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body:    'Outfit', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --sidebar-w: 64px;
+  --topbar-h:  58px;
+
+  --anim-fast:   150ms cubic-bezier(0.4,0,0.2,1);
+  --anim-normal: 280ms cubic-bezier(0.4,0,0.2,1);
+  --anim-slow:   500ms cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ════════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font-body);
+  background: var(--c-bg);
+  color: var(--c-text);
+  height: 100dvh;
+  display: flex;
+  overflow: hidden;
+  cursor: default;
+}
+a { text-decoration: none; color: inherit; }
+button { font-family: var(--font-body); cursor: pointer; border: none; outline: none; background: none; }
+input, select, textarea { font-family: var(--font-body); outline: none; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-surface2); border-radius: 99px; }
+
+/* ════════════════════════════════════════════
+   CANVAS BACKGROUND PARTICLES
+════════════════════════════════════════════ */
+#canvas-bg {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+}
+
+/* ════════════════════════════════════════════
+   SIDEBAR
+════════════════════════════════════════════ */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--c-bg1);
+  border-right: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 0 14px;
+  flex-shrink: 0;
+  z-index: 50;
+  position: relative;
+  transition: width var(--anim-normal);
+  overflow: hidden;
+}
+
+.sidebar:hover {
+  width: 210px;
+}
+
+.sidebar-logo {
+  width: 100%;
+  padding: 0 14px 22px;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--c-green3), var(--c-green));
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(80,200,110,0.3);
+}
+
+.sidebar-logo-text {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--anim-normal);
+  color: var(--c-text);
+}
+.sidebar-logo-text span { color: var(--c-gold); }
+.sidebar:hover .sidebar-logo-text { opacity: 1; }
+
+.nav-group {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+  overflow: hidden;
+}
+
+.nav-item {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background var(--anim-fast), color var(--anim-fast);
+  color: var(--c-text3);
+  position: relative;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-item:hover { background: var(--c-surface); color: var(--c-text2); }
+.nav-item.active { background: var(--c-green4); color: var(--c-green); }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 20%; bottom: 20%;
+  width: 3px;
+  background: var(--c-green);
+  border-radius: 0 3px 3px 0;
+}
+
+.nav-icon { font-size: 1.05rem; flex-shrink: 0; width: 20px; text-align: center; }
+.nav-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity var(--anim-normal);
+}
+.sidebar:hover .nav-label { opacity: 1; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--c-red);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 800;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-spacer { flex: 1; }
+.nav-divider {
+  width: calc(100% - 16px);
+  height: 1px;
+  background: var(--c-border);
+  margin: 6px 8px;
+  flex-shrink: 0;
+}
+
+.sidebar-user {
+  width: 100%;
+  padding: 10px 8px 0;
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.user-ava {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-green3), var(--c-green));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: box-shadow var(--anim-fast);
+}
+.user-ava:hover { box-shadow: 0 0 0 3px var(--c-border2); }
+
+.user-info {
+  opacity: 0;
+  transition: opacity var(--anim-normal);
+  overflow: hidden;
+}
+.sidebar:hover .user-info { opacity: 1; }
+.user-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; color: var(--c-text); }
+.user-role { font-size: 0.68rem; color: var(--c-text3); }
+
+/* ════════════════════════════════════════════
+   MAIN AREA
+════════════════════════════════════════════ */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ════════════════════════════════════════════
+   TOPBAR
+════════════════════════════════════════════ */
+.topbar {
+  height: var(--topbar-h);
+  background: rgba(12,26,15,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 14px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.topbar-breadcrumb {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.topbar-page { font-size: 0.95rem; font-weight: 700; color: var(--c-text); }
+.topbar-desc { font-size: 0.7rem; color: var(--c-text3); }
+
+.topbar-spacer { flex: 1; }
+
+.topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 99px;
+  padding: 6px 14px;
+  transition: border-color var(--anim-fast);
+}
+.topbar-search:focus-within { border-color: var(--c-border2); }
+.topbar-search input {
+  background: none;
+  border: none;
+  color: var(--c-text);
+  font-size: 0.8rem;
+  width: 160px;
+}
+.topbar-search input::placeholder { color: var(--c-text3); }
+.topbar-search-icon { color: var(--c-text3); font-size: 0.85rem; }
+
+.lang-pill {
+  display: flex;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 99px;
+  padding: 3px;
+}
+.lang-opt {
+  padding: 4px 11px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--c-text3);
+  transition: all var(--anim-fast);
+  letter-spacing: 0.5px;
+}
+.lang-opt.on { background: var(--c-green); color: var(--c-bg); }
+
+.topbar-icon-btn {
+  width: 34px; height: 34px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color var(--anim-fast);
+  position: relative;
+  flex-shrink: 0;
+}
+.topbar-icon-btn:hover { border-color: var(--c-border2); }
+
+.notif-pulse {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 7px; height: 7px;
+  background: var(--c-red);
+  border-radius: 50%;
+  border: 2px solid var(--c-bg1);
+  animation: pulse-anim 2s infinite;
+}
+@keyframes pulse-anim {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+/* ════════════════════════════════════════════
+   PAGES
+════════════════════════════════════════════ */
+.page { display: none; flex: 1; overflow-y: auto; padding: 22px 24px; flex-direction: column; gap: 18px; }
+.page.on { display: flex; }
+
+/* ════════════════════════════════════════════
+   GRID HELPERS
+════════════════════════════════════════════ */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.gspan2 { grid-column: span 2; }
+
+/* ════════════════════════════════════════════
+   CARD COMPONENT
+════════════════════════════════════════════ */
+.card {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: border-color var(--anim-fast);
+  position: relative;
+}
+.card:hover { border-color: var(--c-border2); }
+
+.card-head {
+  padding: 14px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--c-border);
+}
+.card-title { font-size: 0.82rem; font-weight: 700; color: var(--c-text); display: flex; align-items: center; gap: 7px; }
+.card-body { padding: 16px 18px; }
+.card-body-flush { padding: 0; }
+
+/* ════════════════════════════════════════════
+   METRIC CARD
+════════════════════════════════════════════ */
+.metric {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--anim-fast);
+}
+.metric:hover { border-color: var(--c-border2); transform: translateY(-1px); }
+
+.metric-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.metric-accent.green { background: linear-gradient(90deg, var(--c-green3), var(--c-green)); }
+.metric-accent.gold  { background: linear-gradient(90deg, var(--c-gold2), var(--c-gold)); }
+.metric-accent.blue  { background: linear-gradient(90deg, #2d7aa0, var(--c-blue)); }
+.metric-accent.red   { background: linear-gradient(90deg, #a03030, var(--c-red)); }
+
+.metric-icon { font-size: 1.3rem; margin-bottom: 10px; }
+.metric-val {
+  font-family: var(--font-mono);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--c-white);
+  line-height: 1;
+  margin-bottom: 4px;
+  letter-spacing: -1px;
+}
+.metric-lbl { font-size: 0.73rem; color: var(--c-text2); margin-bottom: 8px; }
+.metric-chg { font-size: 0.7rem; font-family: var(--font-mono); font-weight: 600; }
+.metric-chg.up { color: var(--c-green); }
+.metric-chg.dn { color: var(--c-red); }
+.metric-chg.nt { color: var(--c-text3); }
+
+/* ════════════════════════════════════════════
+   BADGE
+════════════════════════════════════════════ */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 0.68rem; font-weight: 700;
+}
+.badge.green { background: rgba(80,200,110,0.12); color: var(--c-green); border: 1px solid rgba(80,200,110,0.2); }
+.badge.gold  { background: rgba(232,192,90,0.12);  color: var(--c-gold);  border: 1px solid rgba(232,192,90,0.2); }
+.badge.red   { background: rgba(240,80,80,0.12);   color: var(--c-red);   border: 1px solid rgba(240,80,80,0.2); }
+.badge.blue  { background: rgba(80,170,200,0.12);  color: var(--c-blue);  border: 1px solid rgba(80,170,200,0.2); }
+.badge.grey  { background: rgba(255,255,255,0.05); color: var(--c-text2); border: 1px solid var(--c-border); }
+
+/* ════════════════════════════════════════════
+   TABLE
+════════════════════════════════════════════ */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th {
+  font-size: 0.68rem; font-weight: 700;
+  color: var(--c-text3); text-transform: uppercase; letter-spacing: 0.7px;
+  padding: 8px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-bg1);
+}
+.tbl td {
+  padding: 11px 14px;
+  font-size: 0.8rem;
+  color: var(--c-text2);
+  border-bottom: 1px solid rgba(80,200,110,0.04);
+  vertical-align: middle;
+}
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr { transition: background var(--anim-fast); }
+.tbl tbody tr:hover td { background: var(--c-surface); color: var(--c-text); }
+
+/* ════════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 18px;
+  border-radius: 99px;
+  font-size: 0.8rem; font-weight: 700;
+  transition: all var(--anim-fast);
+  white-space: nowrap;
+}
+.btn-green {
+  background: var(--c-green);
+  color: var(--c-bg);
+  box-shadow: 0 4px 16px rgba(80,200,110,0.25);
+}
+.btn-green:hover { background: var(--c-green2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(80,200,110,0.35); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--c-green);
+  border: 1px solid var(--c-border2);
+}
+.btn-outline:hover { background: var(--c-greenGlow); border-color: var(--c-border3); }
+
+.btn-ghost {
+  background: var(--c-surface);
+  color: var(--c-text2);
+  border: 1px solid var(--c-border);
+}
+.btn-ghost:hover { border-color: var(--c-border2); color: var(--c-text); }
+
+.btn-gold {
+  background: var(--c-gold);
+  color: var(--c-bg);
+  box-shadow: 0 4px 16px rgba(232,192,90,0.25);
+}
+.btn-gold:hover { background: var(--c-gold2); transform: translateY(-1px); }
+
+.btn-sm { padding: 5px 12px; font-size: 0.72rem; }
+.btn-full { width: 100%; }
+
+/* ════════════════════════════════════════════
+   CHIP / FILTER
+════════════════════════════════════════════ */
+.chip {
+  padding: 5px 14px;
+  border-radius: 99px;
+  font-size: 0.75rem; font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text2);
+  transition: all var(--anim-fast);
+}
+.chip:hover { border-color: var(--c-border2); color: var(--c-green); }
+.chip.on { background: var(--c-green4); border-color: var(--c-green3); color: var(--c-green); }
+
+/* ════════════════════════════════════════════
+   FORM ELEMENTS
+════════════════════════════════════════════ */
+.f-label {
+  display: block;
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--c-text2);
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+.f-input, .f-select, .f-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  color: var(--c-text);
+  font-size: 0.83rem;
+  transition: border-color var(--anim-fast), background var(--anim-fast);
+}
+.f-input:focus, .f-select:focus, .f-textarea:focus {
+  border-color: var(--c-border3);
+  background: var(--c-surface2);
+}
+.f-input::placeholder, .f-textarea::placeholder { color: var(--c-text3); }
+.f-select option { background: var(--c-surface2); }
+.f-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.f-group { display: flex; flex-direction: column; gap: 5px; }
+.f-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.f-full { grid-column: 1 / -1; }
+.f-row { display: flex; gap: 14px; }
+
+/* ════════════════════════════════════════════
+   TOGGLE SWITCH
+════════════════════════════════════════════ */
+.toggle-wrap { display: inline-flex; align-items: center; gap: 10px; }
+.toggle {
+  position: relative;
+  width: 40px; height: 22px;
+  flex-shrink: 0;
+}
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 99px;
+  cursor: pointer;
+  transition: background var(--anim-fast), border-color var(--anim-fast);
+}
+.toggle-track::before {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  background: var(--c-text3);
+  border-radius: 50%;
+  transition: transform var(--anim-fast), background var(--anim-fast);
+}
+.toggle input:checked ~ .toggle-track { background: var(--c-green4); border-color: var(--c-green3); }
+.toggle input:checked ~ .toggle-track::before { transform: translateX(18px); background: var(--c-green); }
+
+/* ════════════════════════════════════════════
+   PROGRESS BAR
+════════════════════════════════════════════ */
+.prog-wrap { background: var(--c-surface2); border-radius: 99px; overflow: hidden; }
+.prog-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--c-green3), var(--c-green));
+  transition: width 1s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ════════════════════════════════════════════
+   CHART BARS (SVG)
+════════════════════════════════════════════ */
+.chart-svg { width: 100%; height: 110px; }
+
+/* ════════════════════════════════════════════
+   PRODUCT CARD
+════════════════════════════════════════════ */
+.prod-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.prod-card {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: all var(--anim-normal);
+  cursor: pointer;
+}
+.prod-card:hover { border-color: var(--c-border2); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+.prod-img {
+  height: 110px;
+  background: var(--c-bg3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.2rem;
+  position: relative;
+  border-bottom: 1px solid var(--c-border);
+}
+.prod-region {
+  position: absolute;
+  bottom: 8px; right: 8px;
+  background: rgba(0,0,0,0.7);
+  color: var(--c-text2);
+  font-size: 0.62rem;
+  padding: 2px 8px;
+  border-radius: 99px;
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--c-border);
+}
+.prod-certified {
+  position: absolute;
+  top: 8px; left: 8px;
+  background: rgba(80,200,110,0.15);
+  color: var(--c-green);
+  font-size: 0.6rem; font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  border: 1px solid var(--c-border2);
+}
+
+.prod-body { padding: 12px 14px; }
+.prod-name { font-size: 0.88rem; font-weight: 700; color: var(--c-text); margin-bottom: 2px; }
+.prod-farmer { font-size: 0.72rem; color: var(--c-text3); margin-bottom: 10px; }
+.prod-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.prod-price { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--c-green); }
+.prod-qty { font-size: 0.7rem; color: var(--c-text3); }
+.prod-stars { font-size: 0.7rem; color: var(--c-gold); }
+
+/* ════════════════════════════════════════════
+   ORDER CARD
+════════════════════════════════════════════ */
+.order-card {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all var(--anim-fast);
+}
+.order-card:hover { border-color: var(--c-border2); }
+
+.order-emoji { font-size: 1.9rem; flex-shrink: 0; }
+.order-body { flex: 1; min-width: 0; }
+.order-name { font-size: 0.88rem; font-weight: 700; color: var(--c-text); margin-bottom: 2px; }
+.order-meta { font-size: 0.73rem; color: var(--c-text3); }
+.order-right { text-align: right; flex-shrink: 0; }
+.order-amount { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--c-gold); }
+.order-date { font-size: 0.68rem; color: var(--c-text3); margin-top: 4px; }
+
+/* ════════════════════════════════════════════
+   CHAT
+════════════════════════════════════════════ */
+.chat-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+.chat-list-panel {
+  background: var(--c-bg2);
+  border-right: 1px solid var(--c-border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.chat-list-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 0.82rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.chat-list-scroll { flex: 1; overflow-y: auto; }
+
+.chat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all var(--anim-fast);
+}
+.chat-row:hover { background: var(--c-surface); }
+.chat-row.on { background: rgba(80,200,110,0.07); border-left-color: var(--c-green); }
+
+.chat-ava {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+}
+.chat-row-info { flex: 1; min-width: 0; }
+.chat-row-name { font-size: 0.8rem; font-weight: 700; color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-row-preview { font-size: 0.7rem; color: var(--c-text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.chat-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.chat-row-time { font-size: 0.62rem; color: var(--c-text3); }
+.chat-unread {
+  background: var(--c-green);
+  color: var(--c-bg);
+  font-size: 0.6rem; font-weight: 800;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.chat-main-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--c-bg);
+  overflow: hidden;
+}
+.chat-main-head {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-bg2);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.chat-main-head-info .cname { font-size: 0.88rem; font-weight: 700; }
+.chat-main-head-info .cstatus { font-size: 0.68rem; color: var(--c-green); }
+.chat-head-actions { margin-left: auto; display: flex; gap: 8px; }
+
+.chat-messages-scroll { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+
+.msg-row { display: flex; align-items: flex-end; gap: 8px; max-width: 68%; }
+.msg-row.me { align-self: flex-end; flex-direction: row-reverse; }
+
+.msg-bubble {
+  padding: 9px 13px;
+  border-radius: var(--r-lg);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.msg-row.them .msg-bubble { background: var(--c-surface2); color: var(--c-text); border-bottom-left-radius: 4px; }
+.msg-row.me   .msg-bubble { background: var(--c-green4); color: var(--c-text); border-bottom-right-radius: 4px; border: 1px solid var(--c-green3); }
+
+.msg-time { font-size: 0.6rem; color: var(--c-text3); flex-shrink: 0; margin-bottom: 2px; }
+
+.chat-input-bar {
+  padding: 12px 18px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-bg2);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.chat-typing {
+  flex: 1;
+  padding: 9px 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 99px;
+  color: var(--c-text);
+  font-size: 0.83rem;
+  transition: border-color var(--anim-fast);
+}
+.chat-typing:focus { border-color: var(--c-border2); }
+.chat-typing::placeholder { color: var(--c-text3); }
+
+.send-btn {
+  width: 38px; height: 38px;
+  background: var(--c-green);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; color: var(--c-bg);
+  flex-shrink: 0;
+  transition: all var(--anim-fast);
+  box-shadow: 0 4px 12px rgba(80,200,110,0.3);
+}
+.send-btn:hover { background: var(--c-green2); transform: scale(1.05); }
+
+/* ════════════════════════════════════════════
+   PRICE PAGE
+════════════════════════════════════════════ */
+.price-row {
+  display: flex; align-items: center;
+  padding: 10px 12px;
+  background: var(--c-surface);
+  border-radius: var(--r-md);
+  gap: 12px;
+  transition: background var(--anim-fast);
+}
+.price-row:hover { background: var(--c-surface2); }
+.price-emoji { font-size: 1.2rem; flex-shrink: 0; width: 26px; text-align: center; }
+.price-crop { font-size: 0.83rem; font-weight: 600; flex: 1; }
+.price-market { font-size: 0.68rem; color: var(--c-text3); }
+.price-val { font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: var(--c-gold); }
+.price-chg { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; width: 55px; text-align: right; }
+.price-chg.up { color: var(--c-green); }
+.price-chg.dn { color: var(--c-red); }
+.price-chg.nt { color: var(--c-text3); }
+
+/* ════════════════════════════════════════════
+   TOAST NOTIFICATION
+════════════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 22px; right: 22px;
+  background: var(--c-bg3);
+  border: 1px solid var(--c-border2);
+  color: var(--c-text);
+  padding: 12px 18px;
+  border-radius: var(--r-lg);
+  font-size: 0.82rem; font-weight: 600;
+  z-index: 9999;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: var(--shadow-md);
+  transform: translateY(80px); opacity: 0;
+  transition: all var(--anim-normal);
+  max-width: 340px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-icon { font-size: 1.1rem; }
+
+/* ════════════════════════════════════════════
+   MODAL
+════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(7,16,10,0.88);
+  backdrop-filter: blur(12px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: all var(--anim-normal);
+}
+.modal-overlay.show { opacity: 1; visibility: visible; }
+.modal-box {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border2);
+  border-radius: var(--r-xl);
+  padding: 32px 28px;
+  width: 90%;
+  max-width: 460px;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(24px) scale(0.97);
+  transition: transform var(--anim-normal);
+  position: relative;
+}
+.modal-overlay.show .modal-box { transform: translateY(0) scale(1); }
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 30px; height: 30px;
+  background: var(--c-surface);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--c-text2);
+  transition: all var(--anim-fast);
+  border: 1px solid var(--c-border);
+}
+.modal-close:hover { background: var(--c-surface2); color: var(--c-text); }
+.modal-title { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 6px; }
+.modal-desc { font-size: 0.8rem; color: var(--c-text2); margin-bottom: 22px; line-height: 1.55; }
+
+/* ════════════════════════════════════════════
+   PROFILE / SETTINGS
+════════════════════════════════════════════ */
+.settings-section { margin-bottom: 20px; }
+.settings-label {
+  font-size: 0.68rem; font-weight: 700;
+  color: var(--c-text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.settings-row {
+  display: flex; align-items: center;
+  padding: 12px 16px;
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  margin-bottom: 6px;
+  gap: 12px;
+  transition: border-color var(--anim-fast);
+}
+.settings-row:hover { border-color: var(--c-border2); }
+.settings-row-icon { font-size: 1rem; width: 24px; text-align: center; flex-shrink: 0; }
+.settings-row-body { flex: 1; }
+.settings-row-title { font-size: 0.82rem; font-weight: 600; color: var(--c-text); }
+.settings-row-desc  { font-size: 0.7rem; color: var(--c-text3); margin-top: 1px; }
+
+/* ════════════════════════════════════════════
+   SECTION HEADER
+════════════════════════════════════════════ */
+.sec-head { display: flex; align-items: center; justify-content: space-between; }
+.sec-title { font-size: 0.9rem; font-weight: 800; color: var(--c-text); }
+.sec-action { font-size: 0.75rem; color: var(--c-green); cursor: pointer; font-weight: 600; transition: color var(--anim-fast); }
+.sec-action:hover { color: var(--c-green2); }
+
+/* ════════════════════════════════════════════
+   HERO BANNER (Dashboard)
+════════════════════════════════════════════ */
+.hero-banner {
+  background: linear-gradient(135deg, var(--c-green4) 0%, var(--c-bg3) 60%);
+  border: 1px solid var(--c-border2);
+  border-radius: var(--r-xl);
+  padding: 22px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(80,200,110,0.12), transparent 70%);
+  border-radius: 50%;
+}
+.hero-banner-text h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-style: italic;
+  margin-bottom: 6px;
+  color: var(--c-white);
+}
+.hero-banner-text p { font-size: 0.8rem; color: var(--c-text2); max-width: 340px; line-height: 1.55; }
+.hero-banner-stat {
+  display: flex; gap: 20px; flex-shrink: 0;
+}
+.hero-stat {
+  text-align: center;
+  padding: 12px 18px;
+  background: rgba(0,0,0,0.3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border);
+}
+.hero-stat-val { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--c-green); }
+.hero-stat-lbl { font-size: 0.65rem; color: var(--c-text3); margin-top: 2px; }
+
+/* ════════════════════════════════════════════
+   VERTICAL DIVIDER
+════════════════════════════════════════════ */
+.vdiv { width: 1px; background: var(--c-border); align-self: stretch; flex-shrink: 0; }
+.hdiv { height: 1px; background: var(--c-border); margin: 4px 0; }
+
+/* ════════════════════════════════════════════
+   ANIMATED SKELETON (loading)
+════════════════════════════════════════════ */
+@keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+.skeleton {
+  background: linear-gradient(90deg, var(--c-surface) 25%, var(--c-surface2) 50%, var(--c-surface) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* ════════════════════════════════════════════
+   ANIMATIONS
+════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fadein { animation: fadeUp 0.4s ease both; }
+.fadein-d1 { animation-delay: 0.05s; }
+.fadein-d2 { animation-delay: 0.10s; }
+.fadein-d3 { animation-delay: 0.15s; }
+.fadein-d4 { animation-delay: 0.20s; }
+
+/* ════════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .sidebar { width: 56px; }
+  .sidebar:hover { width: 56px; }
+  .nav-label, .sidebar-logo-text, .user-info { opacity: 0 !important; }
+  .g4 { grid-template-columns: 1fr 1fr; }
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .gspan2 { grid-column: span 1; }
+  .chat-shell { grid-template-columns: 1fr; }
+  .chat-list-panel { display: none; }
+  .hero-banner-stat { display: none; }
+  .topbar-search { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<!-- ════════ SIDEBAR ════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🌿</div>
+    <div class="sidebar-logo-text">Asl<span>Export</span></div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-item active" data-page="dashboard" onclick="goPage('dashboard',this)">
+      <span class="nav-icon">◈</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" data-page="market" onclick="goPage('market',this)">
+      <span class="nav-icon">🌾</span>
+      <span class="nav-label">Bozor</span>
+    </div>
+    <div class="nav-item" data-page="post" onclick="goPage('post',this)">
+      <span class="nav-icon">＋</span>
+      <span class="nav-label">E'lon berish</span>
+    </div>
+    <div class="nav-item" data-page="orders" onclick="goPage('orders',this)">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">Buyurtmalar</span>
+      <span class="nav-badge">3</span>
+    </div>
+    <div class="nav-item" data-page="prices" onclick="goPage('prices',this)">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Narxlar</span>
+    </div>
+    <div class="nav-item" data-page="chat" onclick="goPage('chat',this)">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Chat</span>
+      <span class="nav-badge">2</span>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" data-page="analytics" onclick="goPage('analytics',this)">
+      <span class="nav-icon">🔬</span>
+      <span class="nav-label">Analitika</span>
+    </div>
+    <div class="nav-item" data-page="settings" onclick="goPage('settings',this)">
+      <span class="nav-icon">⚙</span>
+      <span class="nav-label">Sozlamalar</span>
+    </div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-ava" onclick="goPage('settings',document.querySelector('[data-page=settings]'))">AK</div>
+    <div class="user-info">
+      <div class="user-name">Alisher Karimov</div>
+      <div class="user-role">Fermer · Andijon</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════ MAIN ════════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <div class="topbar-page" id="tb-page">Dashboard</div>
+      <div class="topbar-desc" id="tb-desc">Xush kelibsiz, Alisher! 🌿</div>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-search">
+      <span class="topbar-search-icon">🔍</span>
+      <input type="text" placeholder="Qidirish..." id="global-search" oninput="globalSearch(this.value)">
+    </div>
+    <div class="lang-pill">
+      <div class="lang-opt on" onclick="setLang('uz',this)">UZ</div>
+      <div class="lang-opt" onclick="setLang('en',this)">EN</div>
+    </div>
+    <div class="topbar-icon-btn" onclick="showToast('3 ta yangi xabar! 📬','info')">
+      🔔<div class="notif-pulse"></div>
+    </div>
+  </header>
+
+  <!-- ══════ PAGE: DASHBOARD ══════ -->
+  <div class="page on" id="page-dashboard">
+
+    <!-- Hero Banner -->
+    <div class="hero-banner fadein">
+      <div class="hero-banner-text">
+        <h2>Fermerdan dunyoga — to'g'ridan-to'g'ri.</h2>
+        <p>Bugun 8 ta mamlakatda mahsulotingiz sotilmoqda. Vositachisiz, komissiyasiz foyda — faqat sizniki.</p>
+        <div style="display:flex;gap:10px;margin-top:14px;">
+          <button class="btn btn-green btn-sm" onclick="goPage('post',document.querySelector('[data-page=post]'))">＋ E'lon qo'shish</button>
+          <button class="btn btn-outline btn-sm" onclick="goPage('market',document.querySelector('[data-page=market]'))">Bozorni ko'rish →</button>
+        </div>
+      </div>
+      <div class="hero-banner-stat">
+        <div class="hero-stat">
+          <div class="hero-stat-val">$3,420</div>
+          <div class="hero-stat-lbl">Bu oy</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">24</div>
+          <div class="hero-stat-lbl">Buyurtma</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">4.9★</div>
+          <div class="hero-stat-lbl">Reyting</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="g4">
+      <div class="metric fadein fadein-d1">
+        <div class="metric-accent green"></div>
+        <div class="metric-icon">💰</div>
+        <div class="metric-val">$3,420</div>
+        <div class="metric-lbl" data-uz="Bu oylik daromad" data-en="Monthly Revenue">Bu oylik daromad</div>
+        <div class="metric-chg up">↑ +18.4% o'tgan oyga</div>
+      </div>
+      <div class="metric fadein fadein-d2">
+        <div class="metric-accent gold"></div>
+        <div class="metric-icon">📦</div>
+        <div class="metric-val">24</div>
+        <div class="metric-lbl" data-uz="Faol buyurtmalar" data-en="Active Orders">Faol buyurtmalar</div>
+        <div class="metric-chg up">↑ +6 yangi bugun</div>
+      </div>
+      <div class="metric fadein fadein-d3">
+        <div class="metric-accent blue"></div>
+        <div class="metric-icon">🌍</div>
+        <div class="metric-val">8</div>
+        <div class="metric-lbl" data-uz="Eksport mamlakatlar" data-en="Export Countries">Eksport mamlakatlar</div>
+        <div class="metric-chg up">↑ +2 bu hafta</div>
+      </div>
+      <div class="metric fadein fadein-d4">
+        <div class="metric-accent red"></div>
+        <div class="metric-icon">⭐</div>
+        <div class="metric-val">4.9</div>
+        <div class="metric-lbl" data-uz="Reyting (96 sharh)" data-en="Rating (96 reviews)">Reyting (96 sharh)</div>
+        <div class="metric-chg up">↑ +0.1 bu oy</div>
+      </div>
+    </div>
+
+    <!-- Chart + Recent -->
+    <div class="g2">
+      <div class="card fadein">
+        <div class="card-head">
+          <div class="card-title">📊 Oylik daromad</div>
+          <span class="badge green">2024</span>
+        </div>
+        <div class="card-body">
+          <svg class="chart-svg" id="dash-chart" viewBox="0 0 520 110" preserveAspectRatio="none"></svg>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.65rem;color:var(--c-text3);">
+            <span>Yan</span><span>Fev</span><span>Mar</span><span>Apr</span><span>May</span><span>Iyn</span>
+            <span>Iyl</span><span>Avg</span><span>Sen</span><span>Okt</span><span>Noy</span><span>Dek</span>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:20px;">
+            <div style="font-size:0.73rem;color:var(--c-text2);">Jami: <span style="color:var(--c-gold);font-family:var(--font-mono);font-weight:700;">$28,640</span></div>
+            <div style="font-size:0.73rem;color:var(--c-text2);">O'rtacha: <span style="color:var(--c-green);font-family:var(--font-mono);font-weight:700;">$2,387</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card fadein fadein-d1">
+        <div class="card-head">
+          <div class="card-title">🕐 So'nggi buyurtmalar</div>
+          <button class="sec-action" onclick="goPage('orders',document.querySelector('[data-page=orders]'))">Barchasi →</button>
+        </div>
+        <div class="card-body-flush">
+          <table class="tbl">
+            <thead><tr>
+              <th>Mahsulot</th><th>Xaridor</th><th>Summa</th><th>Holat</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>🍑 O'rik 500kg</td><td>🇩🇪 Hans M.</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$1,400</td><td><span class="badge green">Tasdiqlandi</span></td></tr>
+              <tr><td>🍇 Uzum 1.2t</td><td>🇦🇪 Ahmad K.</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$1,920</td><td><span class="badge blue">Yo'lda</span></td></tr>
+              <tr><td>🍈 Qovun 3t</td><td>🇨🇳 Li Wei</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$2,700</td><td><span class="badge gold">Kutilmoqda</span></td></tr>
+              <tr><td>🌰 Yong'oq 200kg</td><td>🇩🇪 Klaus B.</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$1,300</td><td><span class="badge green">Yetkazildi</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price snapshot + Top products -->
+    <div class="g2">
+      <div class="card fadein">
+        <div class="card-head">
+          <div class="card-title">🌡 Bugungi narxlar</div>
+          <button class="sec-action" onclick="goPage('prices',document.querySelector('[data-page=prices]'))">Ko'proq →</button>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:7px;">
+          <div class="price-row"><span class="price-emoji">🍑</span><div><div class="price-crop">O'rik</div><div class="price-market">EU bozori</div></div><span class="price-val">$2.80/kg</span><span class="price-chg up">↑8.3%</span></div>
+          <div class="price-row"><span class="price-emoji">🍇</span><div><div class="price-crop">Uzum</div><div class="price-market">UAE bozori</div></div><span class="price-val">$1.60/kg</span><span class="price-chg dn">↓2.1%</span></div>
+          <div class="price-row"><span class="price-emoji">🍈</span><div><div class="price-crop">Qovun</div><div class="price-market">Xitoy bozori</div></div><span class="price-val">$0.90/kg</span><span class="price-chg up">↑5.0%</span></div>
+          <div class="price-row"><span class="price-emoji">🌰</span><div><div class="price-crop">Yong'oq</div><div class="price-market">EU bozori</div></div><span class="price-val">$6.50/kg</span><span class="price-chg up">↑0.8%</span></div>
+        </div>
+      </div>
+
+      <div class="card fadein fadein-d1">
+        <div class="card-head">
+          <div class="card-title">📋 Faol e'lonlar</div>
+          <button class="sec-action" onclick="goPage('post',document.querySelector('[data-page=post]'))">E'lon qo'shish →</button>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:0.8rem;font-weight:600;">🍑 O'rik (Samarqand)</span>
+              <span style="font-size:0.72rem;color:var(--c-green);font-family:var(--font-mono);">$2.80/kg</span>
+            </div>
+            <div class="prog-wrap" style="height:5px;"><div class="prog-fill" style="width:72%"></div></div>
+            <div style="font-size:0.65rem;color:var(--c-text3);margin-top:3px;">1,440 / 2,000 kg sotildi</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:0.8rem;font-weight:600;">🍈 Qovun (Andijon)</span>
+              <span style="font-size:0.72rem;color:var(--c-green);font-family:var(--font-mono);">$0.90/kg</span>
+            </div>
+            <div class="prog-wrap" style="height:5px;"><div class="prog-fill" style="width:34%"></div></div>
+            <div style="font-size:0.65rem;color:var(--c-text3);margin-top:3px;">1,700 / 5,000 kg sotildi</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:0.8rem;font-weight:600;">🌰 Yong'oq (Namangan)</span>
+              <span style="font-size:0.72rem;color:var(--c-green);font-family:var(--font-mono);">$6.50/kg</span>
+            </div>
+            <div class="prog-wrap" style="height:5px;"><div class="prog-fill" style="width:90%"></div></div>
+            <div style="font-size:0.65rem;color:var(--c-text3);margin-top:3px;">360 / 400 kg sotildi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: MARKET ══════ -->
+  <div class="page" id="page-market">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <input class="f-input" style="max-width:240px;" type="text" placeholder="🔍 Mahsulot qidirish..." id="mkt-search" oninput="renderMarket()">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="cat-chips">
+        <div class="chip on" data-cat="all" onclick="setCat('all',this)">Barchasi</div>
+        <div class="chip" data-cat="meva" onclick="setCat('meva',this)">🍑 Mevalar</div>
+        <div class="chip" data-cat="sabzavot" onclick="setCat('sabzavot',this)">🥕 Sabzavotlar</div>
+        <div class="chip" data-cat="don" onclick="setCat('don',this)">🌾 Don ekinlar</div>
+        <div class="chip" data-cat="quruq" onclick="setCat('quruq',this)">🥜 Quruq meva</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <span id="mkt-count" style="font-size:0.75rem;color:var(--c-text3);align-self:center;"></span>
+        <button class="btn btn-green btn-sm" onclick="goPage('post',document.querySelector('[data-page=post]'))">＋ E'lon berish</button>
+      </div>
+    </div>
+    <div class="prod-grid" id="prod-grid"></div>
+  </div>
+
+  <!-- ══════ PAGE: POST ══════ -->
+  <div class="page" id="page-post">
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start;">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">＋ Yangi mahsulot e'lon berish</div>
+        </div>
+        <div class="card-body">
+          <div class="f-grid">
+            <div class="f-group">
+              <label class="f-label">Mahsulot nomi *</label>
+              <input class="f-input" id="p-name" type="text" placeholder="Masalan: Samarqand o'rigi">
+            </div>
+            <div class="f-group">
+              <label class="f-label">Kategoriya *</label>
+              <select class="f-select" id="p-cat">
+                <option value="">Tanlang...</option>
+                <option value="meva">🍑 Meva</option>
+                <option value="sabzavot">🥕 Sabzavot</option>
+                <option value="don">🌾 Don</option>
+                <option value="quruq">🥜 Quruq meva</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label class="f-label">Miqdor (kg) *</label>
+              <input class="f-input" id="p-qty" type="number" min="1" placeholder="1000">
+            </div>
+            <div class="f-group">
+              <label class="f-label">Narx ($/kg) *</label>
+              <input class="f-input" id="p-price" type="number" min="0" step="0.01" placeholder="2.50">
+            </div>
+            <div class="f-group">
+              <label class="f-label">Viloyat *</label>
+              <select class="f-select" id="p-region">
+                <option>Andijon</option><option>Farg'ona</option><option>Samarqand</option>
+                <option>Toshkent</option><option>Namangan</option><option>Buxoro</option>
+                <option>Qashqadaryo</option><option>Surxondaryo</option><option>Xorazm</option>
+                <option>Navoiy</option><option>Jizzax</option><option>Sirdaryo</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label class="f-label">Yetkazib berish</label>
+              <select class="f-select" id="p-delivery">
+                <option>3–5 kun</option><option>1 hafta</option><option>2 hafta</option><option>1 oy</option>
+              </select>
+            </div>
+            <div class="f-group f-full">
+              <label class="f-label">Sertifikatlar</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="cert-wrap">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> GlobalG.A.P</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> Organic</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> Halol</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> ISO 22000</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> Phytosanitary</label>
+              </div>
+            </div>
+            <div class="f-group f-full">
+              <label class="f-label">Tavsif</label>
+              <textarea class="f-textarea" id="p-desc" placeholder="Mahsulot sifati, terim vaqti, saqlash sharoiti haqida yozing..."></textarea>
+            </div>
+            <div class="f-group f-full">
+              <label class="f-label">Maqsad bozor</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="market-wrap">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> 🇩🇪 Yevropa</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> 🇦🇪 Fors ko'rfazi</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> 🇨🇳 Xitoy</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--c-text2);"><input type="checkbox" style="accent-color:var(--c-green)"> 🇷🇺 Rossiya</label>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:18px;">
+            <button class="btn btn-green" onclick="submitListing()">✅ E'lon berish</button>
+            <button class="btn btn-outline" onclick="clearForm()">Tozalash</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- My listings sidebar -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">📋 Mening e'lonlarim</div>
+          <span class="badge grey" id="listing-count">2</span>
+        </div>
+        <div class="card-body-flush">
+          <table class="tbl" id="my-list-table">
+            <thead><tr><th>Mahsulot</th><th>Narx</th><th>Holat</th></tr></thead>
+            <tbody id="my-list-body">
+              <tr><td>🍑 O'rik — Samarqand</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$2.80</td><td><span class="badge green">Faol</span></td></tr>
+              <tr><td>🍈 Qovun — Andijon</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$0.90</td><td><span class="badge green">Faol</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: ORDERS ══════ -->
+  <div class="page" id="page-orders">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <div class="chip on" onclick="filterOrders('all',this)">Barchasi</div>
+      <div class="chip" onclick="filterOrders('active',this)">⚡ Faol</div>
+      <div class="chip" onclick="filterOrders('shipped',this)">🚛 Jo'natilgan</div>
+      <div class="chip" onclick="filterOrders('done',this)">✅ Yakunlangan</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="orders-list"></div>
+  </div>
+
+  <!-- ══════ PAGE: PRICES ══════ -->
+  <div class="page" id="page-prices">
+    <div class="g2">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🌍 Global bozor narxlari</div>
+          <span class="badge green">● Jonli</span>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:7px;">
+          <div class="price-row"><span class="price-emoji">🍑</span><div><div class="price-crop">O'rik</div><div class="price-market">EU / Germaniya</div></div><span class="price-val">$2.80/kg</span><span class="price-chg up">↑8.3%</span></div>
+          <div class="price-row"><span class="price-emoji">🍇</span><div><div class="price-crop">Uzum</div><div class="price-market">UAE / Dubai</div></div><span class="price-val">$1.60/kg</span><span class="price-chg dn">↓2.1%</span></div>
+          <div class="price-row"><span class="price-emoji">🍈</span><div><div class="price-crop">Qovun</div><div class="price-market">Xitoy / Shanghai</div></div><span class="price-val">$0.90/kg</span><span class="price-chg up">↑5.0%</span></div>
+          <div class="price-row"><span class="price-emoji">🍅</span><div><div class="price-crop">Pomidor</div><div class="price-market">Rossiya / Moskva</div></div><span class="price-val">$0.65/kg</span><span class="price-chg up">↑1.2%</span></div>
+          <div class="price-row"><span class="price-emoji">🌶️</span><div><div class="price-crop">Qalampir</div><div class="price-market">EU / Amsterdam</div></div><span class="price-val">$1.20/kg</span><span class="price-chg nt">—0.0%</span></div>
+          <div class="price-row"><span class="price-emoji">🧅</span><div><div class="price-crop">Piyoz</div><div class="price-market">Rossiya / Moskva</div></div><span class="price-val">$0.35/kg</span><span class="price-chg dn">↓1.4%</span></div>
+          <div class="price-row"><span class="price-emoji">🥕</span><div><div class="price-crop">Sabzi</div><div class="price-market">Xitoy / Beijing</div></div><span class="price-val">$0.48/kg</span><span class="price-chg up">↑3.2%</span></div>
+          <div class="price-row"><span class="price-emoji">🌰</span><div><div class="price-crop">Yong'oq</div><div class="price-market">EU / Rotterdam</div></div><span class="price-val">$6.50/kg</span><span class="price-chg up">↑0.8%</span></div>
+          <div class="price-row"><span class="price-emoji">🫐</span><div><div class="price-crop">Gilos</div><div class="price-market">UAE / Abu Dhabi</div></div><span class="price-val">$4.20/kg</span><span class="price-chg up">↑12.1%</span></div>
+          <div class="price-row"><span class="price-emoji">🍑</span><div><div class="price-crop">Shaftoli</div><div class="price-market">EU / Italiya</div></div><span class="price-val">$1.80/kg</span><span class="price-chg up">↑4.5%</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📊 O'rik — 6 oylik trend</div>
+          </div>
+          <div class="card-body">
+            <svg viewBox="0 0 340 80" style="width:100%;height:80px;" id="price-chart"></svg>
+            <div style="margin-top:8px;font-size:0.72rem;color:var(--c-text2);">
+              Yanvar: <span style="color:var(--c-text3)">$1.80</span> → Iyun: <span style="color:var(--c-green);font-weight:700;">$2.80</span>
+              <span style="margin-left:10px;color:var(--c-green);font-family:var(--font-mono);font-weight:700;">+55.6%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">📅 Mavsumiy prognoz</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:0.8rem;">🍑 O'rik (iyul–avgust)</span>
+                <span style="font-size:0.72rem;color:var(--c-green);font-weight:700;">Yuqori ↑</span>
+              </div>
+              <div class="prog-wrap" style="height:6px;"><div class="prog-fill" style="width:85%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:0.8rem;">🍈 Qovun (iyun–iyul)</span>
+                <span style="font-size:0.72rem;color:var(--c-gold);font-weight:700;">O'rta →</span>
+              </div>
+              <div class="prog-wrap" style="height:6px;"><div class="prog-fill" style="width:60%;background:linear-gradient(90deg,var(--c-gold2),var(--c-gold))"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:0.8rem;">🍇 Uzum (sentyabr–oktyabr)</span>
+                <span style="font-size:0.72rem;color:var(--c-blue);font-weight:700;">Past ↓</span>
+              </div>
+              <div class="prog-wrap" style="height:6px;"><div class="prog-fill" style="width:35%;background:linear-gradient(90deg,#2d7aa0,var(--c-blue))"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:0.8rem;">🌰 Yong'oq (oktyabr–noyabr)</span>
+                <span style="font-size:0.72rem;color:var(--c-green);font-weight:700;">Yuqori ↑</span>
+              </div>
+              <div class="prog-wrap" style="height:6px;"><div class="prog-fill" style="width:78%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">💱 Valyuta kurslari</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+              <span style="color:var(--c-text2);">🇺🇸 USD</span>
+              <span style="font-family:var(--font-mono);color:var(--c-gold);">12,650 UZS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+              <span style="color:var(--c-text2);">🇪🇺 EUR</span>
+              <span style="font-family:var(--font-mono);color:var(--c-gold);">13,820 UZS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+              <span style="color:var(--c-text2);">🇨🇳 CNY</span>
+              <span style="font-family:var(--font-mono);color:var(--c-gold);">1,740 UZS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+              <span style="color:var(--c-text2);">🇦🇪 AED</span>
+              <span style="font-family:var(--font-mono);color:var(--c-gold);">3,445 UZS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: CHAT ══════ -->
+  <div class="page" id="page-chat" style="padding-bottom:0;">
+    <div class="chat-shell">
+      <div class="chat-list-panel">
+        <div class="chat-list-head">
+          💬 Xabarlar
+          <span class="badge red">2</span>
+        </div>
+        <div class="chat-list-scroll" id="chat-list-scroll"></div>
+      </div>
+      <div class="chat-main-panel">
+        <div class="chat-main-head">
+          <div class="chat-ava" id="active-ava" style="background:linear-gradient(135deg,#1d4a8e,#4a8eba);font-size:1.1rem;">🇩🇪</div>
+          <div class="chat-main-head-info">
+            <div class="cname" id="active-name">Hans Mueller</div>
+            <div class="cstatus">● Online</div>
+          </div>
+          <div class="chat-head-actions">
+            <button class="topbar-icon-btn" onclick="showToast('Buyurtma sahifasiga o\'tildi 📦','info')" title="Buyurtma">📦</button>
+            <button class="topbar-icon-btn" onclick="showToast('Qo\'ng\'iroq boshlandi... 📞','info')" title="Qo'ng'iroq">📞</button>
+            <button class="topbar-icon-btn" onclick="showToast('Fayl yuborilmoqda... 📎','info')" title="Fayl">📎</button>
+          </div>
+        </div>
+        <div class="chat-messages-scroll" id="chat-messages"></div>
+        <div class="chat-input-bar">
+          <input class="chat-typing" id="chat-inp" type="text" placeholder="Xabar yozing..." onkeydown="if(event.key==='Enter')sendMsg()">
+          <button class="send-btn" onclick="sendMsg()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: ANALYTICS ══════ -->
+  <div class="page" id="page-analytics">
+    <div class="g3">
+      <div class="card">
+        <div class="card-head"><div class="card-title">🗺️ Eksport geografiyasi</div></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.82rem;">🇩🇪 Germaniya</span>
+            <div style="display:flex;align-items:center;gap:10px;flex:1;margin-left:14px;">
+              <div class="prog-wrap" style="height:6px;flex:1;"><div class="prog-fill" style="width:42%"></div></div>
+              <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--c-gold);width:40px;text-align:right;">42%</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.82rem;">🇦🇪 UAE</span>
+            <div style="display:flex;align-items:center;gap:10px;flex:1;margin-left:14px;">
+              <div class="prog-wrap" style="height:6px;flex:1;"><div class="prog-fill" style="width:28%;background:linear-gradient(90deg,var(--c-gold2),var(--c-gold))"></div></div>
+              <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--c-gold);width:40px;text-align:right;">28%</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.82rem;">🇨🇳 Xitoy</span>
+            <div style="display:flex;align-items:center;gap:10px;flex:1;margin-left:14px;">
+              <div class="prog-wrap" style="height:6px;flex:1;"><div class="prog-fill" style="width:18%;background:linear-gradient(90deg,#2d7aa0,var(--c-blue))"></div></div>
+              <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--c-blue);width:40px;text-align:right;">18%</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.82rem;">🇷🇺 Rossiya</span>
+            <div style="display:flex;align-items:center;gap:10px;flex:1;margin-left:14px;">
+              <div class="prog-wrap" style="height:6px;flex:1;"><div class="prog-fill" style="width:12%;background:linear-gradient(90deg,#7a3030,var(--c-red))"></div></div>
+              <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--c-red);width:40px;text-align:right;">12%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">🏆 Top mahsulotlar</div></div>
+        <div class="card-body">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Mahsulot</th><th>Daromad</th></tr></thead>
+            <tbody>
+              <tr><td style="color:var(--c-gold);font-weight:800;">1</td><td>🍑 O'rik</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$12,400</td></tr>
+              <tr><td style="color:var(--c-text2);font-weight:700;">2</td><td>🌰 Yong'oq</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$7,800</td></tr>
+              <tr><td style="color:var(--c-text2);font-weight:700;">3</td><td>🍇 Uzum</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$4,900</td></tr>
+              <tr><td style="color:var(--c-text3);">4</td><td>🍈 Qovun</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$2,100</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">📅 Haftalik faollik</div></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.75rem;color:var(--c-text3);width:26px;">Dsh</span>
+            <div class="prog-wrap" style="height:8px;flex:1;border-radius:4px;"><div class="prog-fill" style="width:80%;border-radius:4px;"></div></div>
+            <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--c-text2);width:28px;">$820</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.75rem;color:var(--c-text3);width:26px;">Ssh</span>
+            <div class="prog-wrap" style="height:8px;flex:1;border-radius:4px;"><div class="prog-fill" style="width:55%;border-radius:4px;"></div></div>
+            <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--c-text2);width:28px;">$560</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.75rem;color:var(--c-text3);width:26px;">Chr</span>
+            <div class="prog-wrap" style="height:8px;flex:1;border-radius:4px;"><div class="prog-fill" style="width:90%;border-radius:4px;"></div></div>
+            <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--c-text2);width:28px;">$920</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.75rem;color:var(--c-text3);width:26px;">Pay</span>
+            <div class="prog-wrap" style="height:8px;flex:1;border-radius:4px;"><div class="prog-fill" style="width:70%;border-radius:4px;"></div></div>
+            <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--c-text2);width:28px;">$710</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.75rem;color:var(--c-text3);width:26px;">Jum</span>
+            <div class="prog-wrap" style="height:8px;flex:1;border-radius:4px;"><div class="prog-fill" style="width:100%;border-radius:4px;"></div></div>
+            <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--c-green);width:28px;font-weight:700;">$980</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">📊 Yillik daromad grafigi</div></div>
+        <div class="card-body">
+          <svg viewBox="0 0 520 100" style="width:100%;height:100px;" id="analytics-chart"></svg>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.62rem;color:var(--c-text3);">
+            <span>Yan</span><span>Fev</span><span>Mar</span><span>Apr</span><span>May</span><span>Iyn</span>
+            <span>Iyl</span><span>Avg</span><span>Sen</span><span>Okt</span><span>Noy</span><span>Dek</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">🌟 Mijozlar statistikasi</div></div>
+        <div class="card-body">
+          <table class="tbl">
+            <thead><tr><th>Xaridor</th><th>Buyurtmalar</th><th>Jami</th><th>Reyting</th></tr></thead>
+            <tbody>
+              <tr><td>🇩🇪 Hans Mueller</td><td>12</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$14,200</td><td style="color:var(--c-gold)">⭐ 5.0</td></tr>
+              <tr><td>🇦🇪 Ahmad Khalid</td><td>8</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$9,600</td><td style="color:var(--c-gold)">⭐ 4.8</td></tr>
+              <tr><td>🇨🇳 Li Wei</td><td>5</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$6,100</td><td style="color:var(--c-gold)">⭐ 4.9</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: SETTINGS ══════ -->
+  <div class="page" id="page-settings">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-head"><div class="card-title">👤 Profil ma'lumotlari</div></div>
+          <div class="card-body">
+            <div class="f-grid">
+              <div class="f-group"><label class="f-label">Ism</label><input class="f-input" value="Alisher"></div>
+              <div class="f-group"><label class="f-label">Familiya</label><input class="f-input" value="Karimov"></div>
+              <div class="f-group"><label class="f-label">Telefon</label><input class="f-input" value="+998 93 123 45 67"></div>
+              <div class="f-group"><label class="f-label">Email</label><input class="f-input" type="email" value="alisher@farm.uz"></div>
+              <div class="f-group"><label class="f-label">Viloyat</label>
+                <select class="f-select"><option selected>Andijon</option><option>Farg'ona</option><option>Samarqand</option></select>
+              </div>
+              <div class="f-group"><label class="f-label">Fermer turi</label>
+                <select class="f-select"><option>Shaxsiy fermer</option><option>Fermer xo'jaligi</option><option>Korporativ</option></select>
+              </div>
+            </div>
+            <button class="btn btn-green btn-sm" style="margin-top:16px;" onclick="showToast('Profil saqlandi ✅','success')">Saqlash</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">💳 To'lov hisoblari</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--c-surface);border-radius:var(--r-md);">
+              <span style="font-size:1.3rem;">🏦</span>
+              <div style="flex:1;">
+                <div style="font-size:0.83rem;font-weight:700;">Kapitalbank **** 4521</div>
+                <div style="font-size:0.7rem;color:var(--c-text3);">Asosiy hisob</div>
+              </div>
+              <span class="badge green">Faol</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--c-surface);border-radius:var(--r-md);">
+              <span style="font-size:1.3rem;">💳</span>
+              <div style="flex:1;">
+                <div style="font-size:0.83rem;font-weight:700;">Uzcard **** 8844</div>
+                <div style="font-size:0.7rem;color:var(--c-text3);">Qo'shimcha karta</div>
+              </div>
+              <span class="badge grey">Zaxira</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="showToast('Yangi hisob qo\'shilmoqda...','info')">＋ Hisob qo'shish</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-head"><div class="card-title">🔔 Bildirishnomalar</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><div style="font-size:0.83rem;font-weight:600;">Yangi buyurtmalar</div><div style="font-size:0.7rem;color:var(--c-text3);">Buyurtma kelganda darhol xabar</div></div>
+              <label class="toggle"><input type="checkbox" checked onchange="showToast('Saqlandi','success')"><div class="toggle-track"></div></label>
+            </div>
+            <div class="hdiv"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><div style="font-size:0.83rem;font-weight:600;">Narx o'zgarishlari</div><div style="font-size:0.7rem;color:var(--c-text3);">Bozor narxlari sezilarsiz o'zgarganda</div></div>
+              <label class="toggle"><input type="checkbox" checked onchange="showToast('Saqlandi','success')"><div class="toggle-track"></div></label>
+            </div>
+            <div class="hdiv"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><div style="font-size:0.83rem;font-weight:600;">Chat xabarlari</div><div style="font-size:0.7rem;color:var(--c-text3);">Yangi xabar kelganda</div></div>
+              <label class="toggle"><input type="checkbox" onchange="showToast('Saqlandi','success')"><div class="toggle-track"></div></label>
+            </div>
+            <div class="hdiv"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><div style="font-size:0.83rem;font-weight:600;">Haftalik hisobot</div><div style="font-size:0.7rem;color:var(--c-text3);">Email orqali haftalik analitika</div></div>
+              <label class="toggle"><input type="checkbox" checked onchange="showToast('Saqlandi','success')"><div class="toggle-track"></div></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">🛡️ Sertifikatlar va hujjatlar</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--c-surface);border-radius:var(--r-md);">
+              <span>📄</span><div style="flex:1;"><div style="font-size:0.82rem;font-weight:600;">GlobalG.A.P sertifikat</div><div style="font-size:0.68rem;color:var(--c-text3);">Amal qilish: 2025-iyun</div></div>
+              <span class="badge green">Faol</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--c-surface);border-radius:var(--r-md);">
+              <span>📄</span><div style="flex:1;"><div style="font-size:0.82rem;font-weight:600;">Halol sertifikat</div><div style="font-size:0.68rem;color:var(--c-text3);">Amal qilish: 2024-dekabr</div></div>
+              <span class="badge gold">Yangilash</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="showToast('Yangi sertifikat qo\'shilmoqda...','info')">＋ Sertifikat qo'shish</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">🌐 Interfeys tili</div></div>
+          <div class="card-body">
+            <div class="lang-pill" style="width:fit-content;">
+              <div class="lang-opt on" onclick="setLang('uz',this);showToast('Til o\'zgartirildi','success')">O'zbekcha</div>
+              <div class="lang-opt" onclick="setLang('en',this);showToast('Language changed','success')">English</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✅</span>
+  <span id="toast-msg">Muvaffaqiyatli!</span>
+</div>
+
+<!-- MODAL (product detail) -->
+<div class="modal-overlay" id="prod-modal" onclick="closeProdModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('prod-modal').classList.remove('show')">✕</button>
+    <div id="modal-emoji" style="font-size:3rem;margin-bottom:12px;">🍑</div>
+    <div class="modal-title" id="modal-name">O'rik</div>
+    <div class="modal-desc" id="modal-desc">Samarqand viloyati, Alisher Karimov fermasi</div>
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;" id="modal-badges"></div>
+    <div class="f-grid" style="margin-bottom:18px;" id="modal-details"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-green btn-full" onclick="orderNow()">📦 Buyurtma berish</button>
+      <button class="btn btn-outline" onclick="openChatWith()" style="white-space:nowrap;">💬 Chat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const PRODUCTS = [
+  {id:1,name:"O'rik",nameEn:"Apricot",region:"Samarqand",emoji:"🍑",farmer:"Alisher Karimov",price:2.80,qty:2000,cat:"meva",cert:["GlobalG.A.P","Organic"],stars:4.9,views:142},
+  {id:2,name:"Uzum",nameEn:"Grape",region:"Farg'ona",emoji:"🍇",farmer:"Bobur Toshmatov",price:1.60,qty:1500,cat:"meva",cert:["Halol"],stars:4.7,views:98},
+  {id:3,name:"Qovun",nameEn:"Melon",region:"Andijon",emoji:"🍈",farmer:"Jamshid Rahimov",price:0.90,qty:5000,cat:"meva",cert:["Phytosanitary"],stars:4.8,views:211},
+  {id:4,name:"Pomidor",nameEn:"Tomato",region:"Toshkent",emoji:"🍅",farmer:"Sherzod Mirzayev",price:0.65,qty:3000,cat:"sabzavot",cert:["GlobalG.A.P"],stars:4.6,views:87},
+  {id:5,name:"Qalampir",nameEn:"Pepper",region:"Qashqadaryo",emoji:"🌶️",farmer:"Nodir Alijonov",price:1.20,qty:800,cat:"sabzavot",cert:["Halol","Organic"],stars:4.9,views:56},
+  {id:6,name:"Yong'oq",nameEn:"Walnut",region:"Namangan",emoji:"🌰",farmer:"Otabek Sobirov",price:6.50,qty:400,cat:"quruq",cert:["ISO 22000","GlobalG.A.P"],stars:5.0,views:340},
+  {id:7,name:"Gilos",nameEn:"Cherry",region:"Samarqand",emoji:"🫐",farmer:"Jasur Nazarov",price:4.20,qty:600,cat:"meva",cert:["Organic","Phytosanitary"],stars:4.8,views:178},
+  {id:8,name:"Bug'doy",nameEn:"Wheat",region:"Buxoro",emoji:"🌾",farmer:"Timur Kalandarov",price:0.28,qty:10000,cat:"don",cert:["ISO 22000"],stars:4.5,views:44},
+  {id:9,name:"Sabzi",nameEn:"Carrot",region:"Xorazm",emoji:"🥕",farmer:"Mansur Ortiqov",price:0.48,qty:2500,cat:"sabzavot",cert:["Halol"],stars:4.7,views:63},
+  {id:10,name:"Shaftoli",nameEn:"Peach",region:"Farg'ona",emoji:"🍑",farmer:"Eldor Hasanov",price:1.80,qty:1200,cat:"meva",cert:["GlobalG.A.P","Organic"],stars:4.8,views:125},
+  {id:11,name:"Piyoz",nameEn:"Onion",region:"Sirdaryo",emoji:"🧅",farmer:"Bahodir Tursunov",price:0.35,qty:8000,cat:"sabzavot",cert:["Phytosanitary"],stars:4.4,views:39},
+  {id:12,name:"Mayiz",nameEn:"Raisin",region:"Namangan",emoji:"🍇",farmer:"Kamol Rashidov",price:3.20,qty:500,cat:"quruq",cert:["Organic","Halol","ISO 22000"],stars:4.9,views:290},
+];
+
+const ORDERS = [
+  {emoji:"🍑",name:"O'rik — 500 kg",buyer:"🇩🇪 Hans Mueller, Berlin",amount:"$1,400",date:"Yetkazilish: 3 kun",status:"active",statusTxt:"Tasdiqlandi"},
+  {emoji:"🍇",name:"Uzum — 1.2 tonna",buyer:"🇦🇪 Ahmad Khalid, Dubai",amount:"$1,920",date:"Jo'natildi: 2 kun oldin",status:"shipped",statusTxt:"Yo'lda"},
+  {emoji:"🍈",name:"Qovun — 3 tonna",buyer:"🇨🇳 Li Wei, Shanghai",amount:"$2,700",date:"Buyurtma: bugun",status:"active",statusTxt:"Kutilmoqda"},
+  {emoji:"🍅",name:"Pomidor — 800 kg",buyer:"🇷🇺 Sergey Petrov, Moskva",amount:"$520",date:"Yetkazildi: kecha",status:"done",statusTxt:"Yetkazildi ✓"},
+  {emoji:"🌰",name:"Yong'oq — 200 kg",buyer:"🇩🇪 Klaus Bauer, Frankfurt",amount:"$1,300",date:"Yetkazildi: 3 kun oldin",status:"done",statusTxt:"Yetkazildi ✓"},
+  {emoji:"🫐",name:"Gilos — 300 kg",buyer:"🇦🇪 Fatima Al-Rashid, Abu Dhabi",amount:"$1,260",date:"Yetkazilish: 5 kun",status:"active",statusTxt:"Tayyorlanmoqda"},
+];
+
+const CHATS = [
+  {id:1,name:"Hans Mueller",flag:"🇩🇪",bg:"linear-gradient(135deg,#1d4a8e,#4a8eba)",country:"Germaniya",preview:"500 kg o'rik haqida so'radim",time:"10:24",unread:2,
+   msgs:[
+    {me:false,text:"Salom! 500 kg o'rik kerak edi. Sertifikatingiz bormi?",time:"10:18"},
+    {me:true, text:"Ha, GlobalG.A.P va Organic sertifikatlarimiz bor. Qachon kerak?",time:"10:20"},
+    {me:false,text:"Iyul boshida. Narx bo'yicha kelisha olamizmi? $2.60/kg bo'lsa?",time:"10:22"},
+    {me:true, text:"$2.70 dan tushirmasam bo'ladi, sifatini hisobga olsangiz arzon.",time:"10:23"},
+    {me:false,text:"Mayli, kelishdik! Shartnoma yuborasizmi?",time:"10:24"},
+  ]},
+  {id:2,name:"Ahmad Khalid",flag:"🇦🇪",bg:"linear-gradient(135deg,#8e4a1d,#c8804a)",country:"UAE",preview:"Uzum namunasi haqida",time:"Kecha",unread:0,
+   msgs:[
+    {me:false,text:"Assalomu alaykum! Uzum namunasini yuborib ko'rsangiz bo'ladimi?",time:"Kecha 15:30"},
+    {me:true, text:"Albatta! Qaysi manzilga jo'natay? DHL bilan yuboramiz.",time:"Kecha 16:00"},
+    {me:false,text:"Dubai warehouse: Sheikh Zayed Road, Al Quoz Industrial 4.",time:"Kecha 16:20"},
+    {me:true, text:"Tushunarli! Ertaga jo'natamiz.",time:"Kecha 16:25"},
+  ]},
+  {id:3,name:"Li Wei",flag:"🇨🇳",bg:"linear-gradient(135deg,#8e1d1d,#c84a4a)",country:"Xitoy",preview:"3 tonna qovun buyurtmasi",time:"2 kun",unread:1,
+   msgs:[
+    {me:false,text:"Hello! We need 3 tons of melon for Shanghai distribution.",time:"2 kun"},
+    {me:true, text:"We have it ready. $0.90/kg, minimum 2 tons. Phytosanitary cert included.",time:"2 kun"},
+    {me:false,text:"Quality certificate also needed. Can you provide?",time:"2 kun"},
+    {me:true, text:"Yes, we have all documents ready.",time:"2 kun"},
+    {me:false,text:"Great! Send us the invoice please.",time:"2 kun"},
+  ]},
+];
+
+let currentLang = 'uz';
+let currentCat = 'all';
+let currentChatId = 1;
+let currentOrderFilter = 'all';
+let selectedProduct = null;
+
+// ══════════════════════════════════════════
+// PAGE NAV
+// ══════════════════════════════════════════
+const PAGE_META = {
+  dashboard: {title:'Dashboard', desc:'Xush kelibsiz, Alisher! 🌿'},
+  market:    {title:'Bozor', desc:'Barcha mahsulotlarni ko\'ring va buyurtma bering'},
+  post:      {title:'E\'lon berish', desc:'Yangi mahsulot e\'lon qo\'shing'},
+  orders:    {title:'Buyurtmalar', desc:'Barcha buyurtmalarni boshqarish'},
+  prices:    {title:'Narxlar', desc:'Jonli global bozor narxlari'},
+  chat:      {title:'Chat', desc:'Xaridorlar bilan muloqot'},
+  analytics: {title:'Analitika', desc:'Chuqur savdo tahlili'},
+  settings:  {title:'Sozlamalar', desc:'Profil va sozlamalar'},
+};
+
+function goPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('on');
+  if (el) el.classList.add('active');
+  const meta = PAGE_META[id] || {};
+  document.getElementById('tb-page').textContent = meta.title || id;
+  document.getElementById('tb-desc').textContent = meta.desc || '';
+}
+
+// ══════════════════════════════════════════
+// LANG
+// ══════════════════════════════════════════
+function setLang(lang, btn) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-opt').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.lang-opt').forEach(b => { if(b.textContent.toLowerCase().includes(lang) || (lang==='en'&&b.textContent==='EN') || (lang==='uz'&&b.textContent==='UZ')) b.classList.add('on'); });
+  btn.classList.add('on');
+  document.querySelectorAll('[data-uz]').forEach(el => {
+    el.textContent = lang === 'uz' ? el.dataset.uz : el.dataset.en;
+  });
+  renderMarket();
+}
+
+// ══════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════
+function drawBarChart(svgId, data, color='#50c86e', color2='rgba(80,200,110,0.2)') {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const W = 520, H = parseInt(svg.getAttribute('viewBox').split(' ')[3]);
+  const max = Math.max(...data);
+  const n = data.length;
+  const bw = (W - (n+1)*4) / n;
+  let html = '';
+  // area path
+  const pts = data.map((v,i) => {
+    const x = 4 + i*(bw+4) + bw/2;
+    const y = H - 14 - ((v/max)*(H-22));
+    return `${x},${y}`;
+  });
+  const first = pts[0].split(','), last = pts[pts.length-1].split(',');
+  html += `<defs><linearGradient id="g${svgId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.3"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`;
+  html += `<path d="M${first[0]},${H-2} L${pts.join(' L')} L${last[0]},${H-2} Z" fill="url(#g${svgId})"/>`;
+  html += `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  // dots
+  pts.forEach((p,i) => {
+    const [x,y] = p.split(',');
+    if(i===data.length-1) html += `<circle cx="${x}" cy="${y}" r="4" fill="${color}" stroke="var(--c-bg2)" stroke-width="2"/>`;
+  });
+  svg.innerHTML = html;
+}
+
+function drawPriceChart() {
+  const svg = document.getElementById('price-chart');
+  if (!svg) return;
+  const data = [1.80, 1.95, 2.10, 2.35, 2.60, 2.80];
+  const W=340, H=80, max=3.2, min=1.5;
+  const pts = data.map((v,i) => {
+    const x = 10 + i*(W-20)/5;
+    const y = H-10 - ((v-min)/(max-min))*(H-20);
+    return `${x},${y}`;
+  });
+  const first=pts[0].split(','), last=pts[pts.length-1].split(',');
+  svg.innerHTML = `
+    <defs><linearGradient id="gpc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#50c86e" stop-opacity="0.25"/><stop offset="100%" stop-color="#50c86e" stop-opacity="0"/></linearGradient></defs>
+    <path d="M${first[0]},${H} L${pts.join(' L')} L${last[0]},${H} Z" fill="url(#gpc)"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="#50c86e" stroke-width="2.5" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>{const[x,y]=p.split(',');return `<circle cx="${x}" cy="${y}" r="3.5" fill="${i===5?'#50c86e':'#34a854'}" stroke="var(--c-bg2)" stroke-width="1.5"/>`;}).join('')}
+  `;
+}
+
+// ══════════════════════════════════════════
+// MARKET
+// ══════════════════════════════════════════
+function setCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('#cat-chips .chip').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on');
+  renderMarket();
+}
+
+function renderMarket() {
+  const search = (document.getElementById('mkt-search')?.value || '').toLowerCase();
+  const filtered = PRODUCTS.filter(p => {
+    const matchCat = currentCat === 'all' || p.cat === currentCat;
+    const n = currentLang === 'uz' ? p.name : p.nameEn;
+    const matchSearch = !search || n.toLowerCase().includes(search) || p.region.toLowerCase().includes(search) || p.farmer.toLowerCase().includes(search);
+    return matchCat && matchSearch;
+  });
+  const grid = document.getElementById('prod-grid');
+  if (!grid) return;
+  document.getElementById('mkt-count').textContent = filtered.length + ' ta mahsulot';
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--c-text3);font-size:0.9rem;">🔍 Mahsulot topilmadi</div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(p => {
+    const stars = '⭐'.repeat(Math.floor(p.stars)) + (p.stars%1?'✨':'');
+    const certBadge = p.cert.length ? `<div class="prod-certified">${p.cert[0]}</div>` : '';
+    return `
+    <div class="prod-card" onclick="openProduct(${p.id})">
+      <div class="prod-img">
+        ${certBadge}
+        <span>${p.emoji}</span>
+        <div class="prod-region">📍 ${p.region}</div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">${currentLang==='uz'?p.name:p.nameEn}</div>
+        <div class="prod-farmer">👨‍🌾 ${p.farmer}</div>
+        <div class="prod-row">
+          <div class="prod-price">$${p.price.toFixed(2)}/kg</div>
+          <div class="prod-qty">📦 ${p.qty.toLocaleString()} kg</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="prod-stars">${p.stars} ⭐</div>
+          <div style="font-size:0.68rem;color:var(--c-text3);">👁 ${p.views}</div>
+        </div>
+        <button class="btn btn-green btn-sm btn-full" onclick="event.stopPropagation();openProduct(${p.id})">Buyurtma berish →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openProduct(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  selectedProduct = p;
+  document.getElementById('modal-emoji').textContent = p.emoji;
+  document.getElementById('modal-name').textContent = currentLang==='uz' ? p.name : p.nameEn;
+  document.getElementById('modal-desc').textContent = `${p.region} viloyati · ${p.farmer}`;
+  document.getElementById('modal-badges').innerHTML = p.cert.map(c => `<span class="badge green">${c}</span>`).join('') + `<span class="badge grey">⭐ ${p.stars}</span>`;
+  document.getElementById('modal-details').innerHTML = `
+    <div class="f-group"><label class="f-label">Narx</label><div style="font-family:var(--font-mono);font-size:1.1rem;color:var(--c-green);font-weight:700;">$${p.price.toFixed(2)}/kg</div></div>
+    <div class="f-group"><label class="f-label">Mavjud miqdor</label><div style="font-weight:600;">${p.qty.toLocaleString()} kg</div></div>
+    <div class="f-group"><label class="f-label">Hudud</label><div style="font-weight:600;">📍 ${p.region}</div></div>
+    <div class="f-group"><label class="f-label">Fermer</label><div style="font-weight:600;">👨‍🌾 ${p.farmer}</div></div>
+  `;
+  document.getElementById('prod-modal').classList.add('show');
+}
+
+function closeProdModal(e) {
+  if (e.target === document.getElementById('prod-modal')) {
+    document.getElementById('prod-modal').classList.remove('show');
+  }
+}
+
+function orderNow() {
+  document.getElementById('prod-modal').classList.remove('show');
+  if (selectedProduct) showToast(`📦 ${selectedProduct.name} buyurtmasi qabul qilindi!`, 'success');
+}
+
+function openChatWith() {
+  document.getElementById('prod-modal').classList.remove('show');
+  goPage('chat', document.querySelector('[data-page=chat]'));
+}
+
+// ══════════════════════════════════════════
+// POST LISTING
+// ══════════════════════════════════════════
+const CAT_EMOJI = {meva:'🍑', sabzavot:'🥕', don:'🌾', quruq:'🥜'};
+let myListingCount = 2;
+
+function submitListing() {
+  const name  = document.getElementById('p-name').value.trim();
+  const cat   = document.getElementById('p-cat').value;
+  const qty   = document.getElementById('p-qty').value;
+  const price = document.getElementById('p-price').value;
+  if (!name || !cat || !qty || !price) {
+    showToast('⚠️ Yulduzcha (*) bilan belgilangan maydonlarni to\'ldiring!', 'error'); return;
+  }
+  const region = document.getElementById('p-region').value;
+  const emoji = CAT_EMOJI[cat] || '🌿';
+  const tbody = document.getElementById('my-list-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${emoji} ${name} — ${region}</td><td style="font-family:var(--font-mono);color:var(--c-gold)">$${parseFloat(price).toFixed(2)}</td><td><span class="badge green">Faol</span></td>`;
+  tbody.insertBefore(tr, tbody.firstChild);
+  myListingCount++;
+  document.getElementById('listing-count').textContent = myListingCount;
+  clearForm();
+  showToast(`✅ "${name}" e'loni muvaffaqiyatli joylandi!`, 'success');
+}
+
+function clearForm() {
+  ['p-name','p-qty','p-price','p-desc'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  const cat = document.getElementById('p-cat'); if(cat) cat.value = '';
+  document.querySelectorAll('#cert-wrap input, #market-wrap input').forEach(c => c.checked = false);
+}
+
+// ══════════════════════════════════════════
+// ORDERS
+// ══════════════════════════════════════════
+const ORDER_BADGE = {active:'gold', shipped:'blue', done:'green'};
+
+function renderOrders(filter='all') {
+  const list = document.getElementById('orders-list');
+  if (!list) return;
+  const filtered = filter === 'all' ? ORDERS : ORDERS.filter(o => o.status === filter);
+  if (!filtered.length) {
+    list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--c-text3);">Bu holat uchun buyurtma yo'q</div>`; return;
+  }
+  list.innerHTML = filtered.map(o => `
+    <div class="order-card">
+      <div class="order-emoji">${o.emoji}</div>
+      <div class="order-body">
+        <div class="order-name">${o.name}</div>
+        <div class="order-meta">${o.buyer} · ${o.date}</div>
+      </div>
+      <div class="order-right">
+        <div class="order-amount">${o.amount}</div>
+        <div style="margin-top:5px;"><span class="badge ${ORDER_BADGE[o.status]}">${o.statusTxt}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterOrders(f, btn) {
+  currentOrderFilter = f;
+  document.querySelectorAll('#page-orders .chip').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on');
+  renderOrders(f);
+}
+
+// ══════════════════════════════════════════
+// CHAT
+// ══════════════════════════════════════════
+function renderChatList() {
+  const el = document.getElementById('chat-list-scroll');
+  if (!el) return;
+  el.innerHTML = CHATS.map(c => `
+    <div class="chat-row${c.id===currentChatId?' on':''}" onclick="openChat(${c.id})">
+      <div class="chat-ava" style="background:${c.bg}">${c.flag}</div>
+      <div class="chat-row-info">
+        <div class="chat-row-name">${c.name}</div>
+        <div class="chat-row-preview">${c.preview}</div>
+      </div>
+      <div class="chat-row-right">
+        <div class="chat-row-time">${c.time}</div>
+        ${c.unread>0?`<div class="chat-unread">${c.unread}</div>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openChat(id) {
+  currentChatId = id;
+  const c = CHATS.find(x => x.id === id);
+  if (!c) return;
+  c.unread = 0;
+  renderChatList();
+  document.getElementById('active-ava').textContent = c.flag;
+  document.getElementById('active-ava').style.background = c.bg;
+  document.getElementById('active-name').textContent = `${c.name} (${c.country})`;
+  const scroll = document.getElementById('chat-messages');
+  scroll.innerHTML = c.msgs.map(m => `
+    <div class="msg-row${m.me?' me':' them'}">
+      ${!m.me ? `<div class="chat-ava" style="width:28px;height:28px;font-size:0.85rem;background:${c.bg};">${c.flag}</div>` : ''}
+      <div>
+        <div class="msg-bubble">${m.text}</div>
+        <div class="msg-time">${m.time}</div>
+      </div>
+    </div>
+  `).join('');
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+function sendMsg() {
+  const inp = document.getElementById('chat-inp');
+  const text = inp.value.trim();
+  if (!text) return;
+  const c = CHATS.find(x => x.id === currentChatId);
+  if (!c) return;
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  c.msgs.push({me:true, text, time});
+  c.preview = text;
+  inp.value = '';
+  openChat(currentChatId);
+  const replies = [
+    'Rahmat, javobingiz uchun!',
+    'Tushundim, shartnomani yuboraman.',
+    'Yaxshi, kelishdik!',
+    'OK, hujjatlarni tayyorlaymiz.',
+    'Zo\'r! Buyurtmani rasmiylashtirish mumkinmi?',
+    'Narx bo\'yicha kelishdik, davom etamiz.',
+  ];
+  setTimeout(() => {
+    c.msgs.push({me:false, text: replies[Math.floor(Math.random()*replies.length)], time});
+    c.preview = c.msgs[c.msgs.length-1].text;
+    c.unread = 1;
+    if (currentChatId !== c.id) renderChatList();
+    else { openChat(currentChatId); }
+  }, 1000 + Math.random()*800);
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='success') {
+  const toast = document.getElementById('toast');
+  const icons = {success:'✅', error:'⚠️', info:'ℹ️'};
+  document.getElementById('toast-icon').textContent = icons[type] || '✅';
+  document.getElementById('toast-msg').textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+}
+
+// ══════════════════════════════════════════
+// GLOBAL SEARCH
+// ══════════════════════════════════════════
+function globalSearch(val) {
+  if (!val) return;
+  const page = document.getElementById('page-market');
+  if (!page.classList.contains('on')) {
+    goPage('market', document.querySelector('[data-page=market]'));
+  }
+  document.getElementById('mkt-search').value = val;
+  renderMarket();
+}
+
+// ══════════════════════════════════════════
+// CANVAS PARTICLES
+// ══════════════════════════════════════════
+(function() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function makeParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      dx: (Math.random() - 0.5) * 0.3,
+      dy: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.5 + 0.1
+    };
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({length: 80}, makeParticle);
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      p.x += p.dx; p.y += p.dy;
+      if (p.x < 0 || p.x > W) p.dx *= -1;
+      if (p.y < 0 || p.y > H) p.dy *= -1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(80,200,110,${p.alpha})`;
+      ctx.fill();
+    });
+    // draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i+1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(80,200,110,${0.04 * (1 - dist/100)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  init();
+  tick();
+})();
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+(function init() {
+  // Charts
+  const monthData = [1200,1800,1400,2200,2900,3200,3420,2900,2600,2300,1900,1600];
+  drawBarChart('dash-chart', monthData);
+  drawBarChart('analytics-chart', monthData);
+  drawPriceChart();
+
+  // Market
+  renderMarket();
+
+  // Orders
+  renderOrders();
+
+  // Chat
+  renderChatList();
+  openChat(1);
+
+  // Animate progress bars on load
+  setTimeout(() => {
+    document.querySelectorAll('.prog-fill').forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0%';
+      setTimeout(() => el.style.width = w, 100);
+    });
+  }, 300);
+})();
+</script>
+</body>
+</html>
